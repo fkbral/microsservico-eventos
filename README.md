@@ -27,7 +27,7 @@ npm install
 
 - **Nome**: `eventService`
 - **Versão**: `1.0.0`
-- **Autor**: [Seu Nome]
+- **Autor**: Raniel Mendonça
 - **Licença**: ISC
 
 ### Dependências:
