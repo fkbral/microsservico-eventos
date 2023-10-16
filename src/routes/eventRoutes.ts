@@ -1,40 +1,12 @@
-import { Router } from "express";
-import {
-    professionalsRoot,
-    professionalsList,
-    professionalsListByYearAndRoom,
-    professionalDetailsByQuery,
-    professionalDetailsByParams,
-    // addprofessional,
-    // updateprofessional,
-    deleteProfessionalByQuery,
-    deleteProfessionalByParams,
-    updateProfessionalBySpecificField
-} from "../controllers/professionalsController";
+import express from "express";
+import { eventController } from "../controllers/eventController";
 
+const router = express.Router();
 
-const professionalsRouter = Router();
+router.get("/", eventController.getAllEvents);
+router.post("/", eventController.createEvent);
+router.get("/:id", eventController.getEvent);
+router.put("/:id", eventController.updateEvent);
+router.delete("/:id", eventController.deleteEvent);
 
-professionalsRouter.get("/", professionalsRoot);
-
-professionalsRouter.get("/professionalsList", professionalsList);
-
-professionalsRouter.get("/professionalsListByYearAndRoom", professionalsListByYearAndRoom);
-
-professionalsRouter.get("/professionalDetails/", professionalDetailsByQuery);
-
-professionalsRouter.get("/professionalDetails/:id", professionalDetailsByParams);
-
-// professionalsRouter.post("/addprofessional", addprofessional);
-
-// professionalsRouter.put("/updateprofessional", updateprofessional);
-
-professionalsRouter.patch("/updateprofessionalBySpecificField", updateProfessionalBySpecificField);
-
-professionalsRouter.delete("/deleteprofessional", deleteProfessionalByQuery);
-
-professionalsRouter.delete("/deleteprofessional/:id", deleteProfessionalByParams);
-
-
-
-export default professionalsRouter;
+export default router;

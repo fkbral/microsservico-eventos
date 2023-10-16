@@ -1,205 +1,90 @@
-import { Response, Request, NextFunction } from "express";
-import Professional from "../models/Professional";
-import { createDbConnection } from "../db/dbConfig";
-import { Database } from "sqlite3";
-import logger from "../services/logger";
+import { Request, Response } from "express";
+import { open } from "sqlite";
+import sqlite3 from "sqlite3";
+import { Event } from "../models/Event";
 
+const dbPromise = open({
+  filename: "src/db/database.sqlite",
+  driver: sqlite3.Database,
+});
 
-let db: Database = createDbConnection();
+export const eventController = {
+  getAllEvents: async (req: Request, res: Response) => {
+    const db = await dbPromise;
+    const events = await db.all("SELECT * FROM events");
+    res.json(events);
+  },
 
-const professionalsRoot = (req: Request, res: Response, next: NextFunction) => {
-    // logger.fatal("fatal");
-    // logger.error("error");
-    // logger.warn("warn");
-    // logger.info("info");
-    // logger.debug("debug");
-    // logger.trace("trace");
-    //res.sendStatus(201);
+  createEvent: async (req: Request, res: Response) => {
+    const db = await dbPromise;
+    const event: Event = req.body;
 
-    res.send("Página Inicial professionals");
-}
-
-const professionalsList = (req: Request, res: Response) => {
-
-
-    let professionalsList: Professional[] = [];
-
-    let sql = `SELECT * FROM professionals`;
-
-    db.all(sql, [], (error: Error, rows: Professional[]) => {
-        if (error) {
-            logger.error(error.message);
-            res.send(error.message);
-        }
-        rows.forEach((row: Professional) => { professionalsList.push(row) });
-        logger.info(req);
-        res.send(professionalsList);
+    if (
+      !event.title ||
+      !event.date ||
+      !event.time ||
+      !event.location ||
+      !event.description
+    ) {
+      return res
+        .status(400)
+        .send("Propriedades obrigatórias ausentes no corpo da requisição.");
     }
-    );
-}
 
-const professionalsListByYearAndRoom = (req: Request, res: Response) => {
-    logger.info(req);
-    let professionalsList: Professional[] = [];
-    let year = req.query.year;
-    let room = req.query.room?.toString().toUpperCase();
+    try {
+      const result = await db.run(
+        "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
+        [event.title, event.date, event.time, event.location, event.description]
+      );
 
-    let sql = `SELECT * FROM professionals WHERE year="${year}" AND room="${room}"`;
+      const lastId = result.lastID;
 
-    db.all(sql, [], (error: Error, rows: Professional[]) => {
-        if (error) {
-            res.send(error.message);
-        }
-        if (rows.length > 0) {
-            rows.forEach((row: Professional) => { professionalsList.push(row) });
-            res.send(professionalsList);
-        } else {
-            res.send("Os parâmetros apresentados não rertonaram resultado.");
-        }
+      const newEvent = await db.get("SELECT * FROM events WHERE id = ?", [
+        lastId,
+      ]);
 
-    })
-}
-
-
-const professionalDetailsByQuery = (req: Request, res: Response) => {
-    logger.info(req);
-    let id = req.query.id;
-    let sql = `SELECT * FROM professionals WHERE id="${id}"`;
-
-    db.all(sql, [], (error: Error, rows: Professional[]) => {
-        if (error) {
-            res.send(error.message);
-        }
-        if (rows.length > 0) {
-            res.send(rows[0]);
-        } else {
-            res.send("Estudante não existe");
-        }
-
+      return res.status(201).json(newEvent);
+    } catch (error) {
+      console.error("Erro ao inserir evento:", error);
+      return res.status(500).send("Erro interno ao criar evento.");
     }
-    );
-}
+  },
 
-const professionalDetailsByParams = (req: Request, res: Response) => {
-    logger.info(req);
-    let id = req.params.id;
-    let sql = `SELECT * FROM professionals WHERE id="${id}"`;
+  getEvent: async (req: Request, res: Response) => {
+    const db = await dbPromise;
+    const event = await db.get("SELECT * FROM events WHERE id = ?", [
+      req.params.id,
+    ]);
 
-    db.all(sql, [], (error: Error, rows: Professional[]) => {
-        if (error) {
-            res.send(error.message);
-        }
-        if (rows.length > 0) {
-            res.send(rows[0]);
-        } else {
-            res.send("Estudante não existe");
-        }
-
+    if (event) {
+      res.json(event);
+    } else {
+      res.status(404).send("Event not found");
     }
+  },
+
+  updateEvent: async (req: Request, res: Response) => {
+    const db = await dbPromise;
+    const event: Event = req.body;
+
+    await db.run(
+      "UPDATE events SET title = ?, date = ?, time = ?, location = ?, description = ? WHERE id = ?",
+      [
+        event.title,
+        event.date,
+        event.time,
+        event.location,
+        event.description,
+        req.params.id,
+      ]
     );
-}
 
-// const addProfessional = (req: Request, res: Response) => {
-//     logger.info(req);
+    res.send("Event updated successfully");
+  },
 
-//     let token = req.headers.authorization;
-
-//     if (token == "Bearer 12345") {
-//         let Professional: Professional = req.body;
-//         let roomToUppercase: string = Professional.room.toUpperCase();
-
-//         let sql = `INSERT INTO professionals(name, shift, year, room) VALUES ("${Professional.name}", "${Professional.shift}", "${Professional.year}", "${roomToUppercase}")`;
-
-//         if (Professional.name && Professional.shift && Professional.year && Professional.room) {
-//             db.run(sql,
-//                 (error: Error) => {
-//                     if (error) {
-//                         res.end(error.message);
-//                     }
-//                     res.send(`Professional ${Professional.name} Added`);
-//                 })
-//         } else {
-//             res.send("Erro na criação do estudante. Verifique se todos os campos foram preenchidos");
-//         }
-//     } else {
-//         res.sendStatus(403);
-//     }
-
-
-
-// }
-
-// const updateProfessional = (req: Request, res: Response) => {
-//     logger.info(req);
-//     let Professional: Professional = req.body;
-//     let roomToUppercase = Professional.room.toUpperCase();
-//     let sql = `UPDATE professionals SET name="${Professional.name}", 
-//                                    shift="${Professional.shift}", 
-//                                    year="${Professional.year}",
-//                                    room="${roomToUppercase}"
-//                                    WHERE id="${Professional.id}"
-//                                    `;
-
-
-//     db.all(sql, [], (error: Error) => {
-//         if (error) {
-//             res.send(error.message);
-//         }
-//         res.send("Professional Updated");
-//     });
-// }
-
-const updateProfessionalBySpecificField = (req: Request, res: Response) => {
-    logger.info(req);
-    let Professional: Professional = req.body;
-    let sql = `UPDATE professionals SET name="${Professional.name}"
-                                   WHERE id="${Professional.id}"
-    `
-    db.all(sql, [], (error: Error) => {
-        if (error) {
-            res.send(error.message);
-        }
-        res.send("Professional Updated");
-    })
-}
-
-const deleteProfessionalByQuery = (req: Request, res: Response) => {
-    logger.info(req);
-    let id = req.query.id;
-    let sql = `DELETE from professionals WHERE id="${id}"`;
-
-    db.all(sql, [], (error: Error) => {
-        if (error) {
-            res.send(error.message);
-        }
-        res.send("Professional Deleted");
-    })
-}
-
-const deleteProfessionalByParams = (req: Request, res: Response) => {
-    logger.info(req);
-    let id = req.params.id;
-    let sql = `DELETE from professionals WHERE id="${id}"`;
-
-    db.all(sql, [], (error: Error) => {
-        if (error) {
-            res.send(error.message);
-        }
-        res.send("Professional Deleted");
-    })
-}
-
-
-
-export {
-    professionalsRoot,
-    professionalsList,
-    professionalsListByYearAndRoom,
-    professionalDetailsByQuery,
-    professionalDetailsByParams,
-    // addProfessional,
-    // updateProfessional,
-    updateProfessionalBySpecificField,
-    deleteProfessionalByQuery,
-    deleteProfessionalByParams
+  deleteEvent: async (req: Request, res: Response) => {
+    const db = await dbPromise;
+    await db.run("DELETE FROM events WHERE id = ?", [req.params.id]);
+    res.send("Event deleted successfully");
+  },
 };

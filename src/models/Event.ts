@@ -1,15 +1,8 @@
-class Person {
-    id: number;
-    name: string;
-    birthday: string;
-    address: string;
-
-    constructor(id: number, name: string, birthday: string, address: string){
-        this.id = id;
-        this.name = name;
-        this.birthday = birthday;
-        this.address = address
-    }
+export class Event {
+  id?: number;
+  title: string = "";
+  date: Date = new Date();
+  time: string = "";
+  location: string = "";
+  description: string = "";
 }
-
-export default Person;
