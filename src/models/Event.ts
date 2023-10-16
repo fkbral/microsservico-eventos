@@ -5,4 +5,5 @@ export class Event {
   time: string = "";
   location: string = "";
   description: string = "";
+  guests: number[] = [];
 }
