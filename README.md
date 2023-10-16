@@ -1,6 +1,6 @@
-# Turma 1025 - Microserviço de Usuários
+# Microserviço de Eventos
 
-Este projeto é dedicado ao ensino de APIs para a turma 1025 da ADA. Ele é construído como um microserviço de usuários, utilizando React, TypeScript e SQLite.
+Este projeto é dedicado ao gerenciamento e organização de eventos. Construído para oferecer uma solução robusta e eficiente, utiliza Node.js, Express, TypeScript e SQLite para realizar suas operações.
 
 ## Início Rápido
 
@@ -11,34 +11,33 @@ Este projeto é dedicado ao ensino de APIs para a turma 1025 da ADA. Ele é cons
 npm install
 ```
 
-
 ## Comandos Disponíveis
 
 - `npm start`: Inicia o servidor.
-- `npm test`: (Ainda não especificado)
+- `npm test`: (A ser implementado)
 
 ## Características Técnicas
 
-- **React** para a camada de apresentação.
-- **TypeScript** para tipagem e lógica do servidor.
-- **SQLite** para persistência de dados.
+- **Node.js**: Ambiente de execução JavaScript no servidor.
+- **Express**: Framework web para construção de APIs.
+- **TypeScript**: Aplicado para tipagem e lógica do servidor.
+- **SQLite**: Sistema de banco de dados relacional.
 
 ## Detalhes do Package
 
-- Nome: `aula02`
-- Versão: `1.0.0`
-- Autor: Raniel Mendonça
-- Licença: ISC
+- **Nome**: `eventService`
+- **Versão**: `1.0.0`
+- **Autor**: [Seu Nome]
+- **Licença**: ISC
 
-**Dependências**:
+### Dependências:
 
 - [cors](https://www.npmjs.com/package/cors) - Para lidar com Cross-Origin Resource Sharing.
 - [dotenv](https://www.npmjs.com/package/dotenv) - Para carregar variáveis de ambiente.
 - [express](https://www.npmjs.com/package/express) - Framework web para construir APIs.
-- [pino](https://www.npmjs.com/package/pino) - Logger.
 - [sqlite3](https://www.npmjs.com/package/sqlite3) - Driver SQLite para Node.js.
 
-**Dependências de Desenvolvimento**:
+### Dependências de Desenvolvimento:
 
 - [@types/cors](https://www.npmjs.com/package/@types/cors) - Tipos para o pacote cors.
 - [@types/express](https://www.npmjs.com/package/@types/express) - Tipos para o pacote express.
@@ -46,4 +45,4 @@ npm install
 
 ## Objetivo do Projeto
 
-O principal objetivo deste projeto é servir como uma ferramenta de ensino para os alunos, demonstrando práticas recomendadas e padrões de desenvolvimento no mundo real.
+O microserviço de eventos foi criado para auxiliar na organização e gestão de eventos de todas as naturezas, seja ele corporativo, social ou educacional. Através deste serviço, os usuários podem criar, editar, deletar e visualizar eventos, garantindo uma gestão eficiente e centralizada.
