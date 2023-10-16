@@ -23,7 +23,7 @@ npm install
 - **TypeScript**: Aplicado para tipagem e lógica do servidor.
 - **SQLite**: Sistema de banco de dados relacional.
 
-## Detalhes do Package
+## Detalhes do Packages
 
 - **Nome**: `eventService`
 - **Versão**: `1.0.0`
