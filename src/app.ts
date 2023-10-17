@@ -1,24 +1,31 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import professionalsRouter from "./routes/professionalsRouter";
-import studentsRouter from "./routes/studentsRouter";
+// Importação dos módulos necessários
+import express from "express"; // Framework web para criar a aplicação
+import dotenv from "dotenv"; // Módulo para carregar variáveis de ambiente
+import cors from "cors"; // Middleware para habilitar CORS
+import eventRoutes from "./routes/eventRoutes"; // Rotas para os eventos
 
+// Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
 
+// Cria uma nova instância do express
 const app = express();
-const port = process.env.PORT || 3000;
+
+// Utiliza o middleware CORS para permitir requisições de diferentes origens
 app.use(cors());
+
+// Habilita o express para tratar requisições com corpo no formato urlencoded
 app.use(express.urlencoded({ extended: false }));
+
+// Habilita o express para tratar requisições com corpo em JSON
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("<h3 style='color: green'>Hello World</h3>");
-});
+// Define a porta padrão ou a porta definida no arquivo .env
+const PORT = process.env.PORT || 3000;
 
-app.use("/students", studentsRouter);
-app.use("/professionals", professionalsRouter);
+// Usa as rotas definidas em eventRoutes para todas as requisições que começam com "/events"
+app.use("/events", eventRoutes);
 
-app.listen(port, () => {
-  console.log(`Servidor escutando na porta ${port}`);
+// Inicia o servidor na porta especificada
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
