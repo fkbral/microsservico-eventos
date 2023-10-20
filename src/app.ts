@@ -11,7 +11,15 @@ dotenv.config();
 const app = express();
 
 // Utiliza o middleware CORS para permitir requisições de diferentes origens
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:4000"],
+  })
+);
+
+app.use((req, res) => {
+  res.status(404);
+});
 
 // Habilita o express para tratar requisições com corpo no formato urlencoded
 app.use(express.urlencoded({ extended: false }));
