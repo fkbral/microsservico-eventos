@@ -11,10 +11,19 @@ Este projeto é dedicado ao gerenciamento e organização de eventos. Construíd
 npm install
 ```
 
+```javascript
+npm run migrate
+```
+
+```javascript
+npm run start
+```
+
 ## Comandos Disponíveis
 
 - `npm start`: Inicia o servidor.
 - `npm test`: (A ser implementado)
+- `npm migrate`: Cria as tabelas no banco"
 
 ## Características Técnicas
 
