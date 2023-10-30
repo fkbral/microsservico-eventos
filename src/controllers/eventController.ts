@@ -9,10 +9,15 @@ const dbPromise = open({
   driver: sqlite3.Database,
 });
 
+export const getAllEventsHandler = async () => {
+  const db = await dbPromise;
+  const events = await db.all("SELECT * FROM events");
+  return events
+}
+
 export const eventController = {
   getAllEvents: async (req: Request, res: Response) => {
-    const db = await dbPromise;
-    const events = await db.all("SELECT * FROM events");
+    const events = getAllEventsHandler()
     res.json(events);
   },
 
