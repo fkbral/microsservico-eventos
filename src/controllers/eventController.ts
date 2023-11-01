@@ -1,23 +1,32 @@
 import axios from "axios";
 import { Request, Response } from "express";
-import { open } from "sqlite";
-import sqlite3 from "sqlite3";
 import { Event } from "../models/Event";
+import initializeDatabase from "../db/dbConfig";
+import createError, { NotFound } from "http-errors";
 
-const dbPromise = open({
-  filename: "src/db/database.sqlite",
-  driver: sqlite3.Database,
-});
+const dbPromise = initializeDatabase();
 
+// a lógica que é implementada dentro de um controller
 export const getAllEventsHandler = async () => {
   const db = await dbPromise;
   const events = await db.all("SELECT * FROM events");
-  return events
-}
+  return events;
+};
+
+export const getEventHandler = async (id: number) => {
+  const db = await dbPromise;
+  const event = await db.get("SELECT * FROM events WHERE id = ?", [id]);
+
+  if (event) {
+    return event;
+  } else {
+    throw createError.NotFound();
+  }
+};
 
 export const eventController = {
   getAllEvents: async (req: Request, res: Response) => {
-    const events = getAllEventsHandler()
+    const events = getAllEventsHandler();
     res.json(events);
   },
 
@@ -110,14 +119,11 @@ export const eventController = {
   },
 
   getEvent: async (req: Request, res: Response) => {
-    const db = await dbPromise;
-    const event = await db.get("SELECT * FROM events WHERE id = ?", [
-      req.params.id,
-    ]);
+    try {
+      const event = getEventHandler(Number(req.params.id));
 
-    if (event) {
       res.json(event);
-    } else {
+    } catch (error) {
       res.status(404).send("Event not found");
     }
   },

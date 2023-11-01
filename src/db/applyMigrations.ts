@@ -4,11 +4,8 @@ import { readFileSync } from "fs";
 // Importando o método `join` do módulo 'path' para concatenar caminhos.
 import { join } from "path";
 
-// Importando o método `open` do módulo 'sqlite' para abrir conexões com o banco de dados SQLite.
-import { open } from "sqlite";
-
-// Importando a biblioteca sqlite3.
-import sqlite3 from "sqlite3";
+// Importando nosso método para abrir conexão com o banco.
+import initializeDatabase from "./dbConfig";
 
 // Definindo o caminho do diretório para os arquivos de migração com base no diretório atual.
 const migrationDir = join(__dirname, "migrations");
@@ -16,10 +13,7 @@ const migrationDir = join(__dirname, "migrations");
 // Função assíncrona para aplicar as migrações do banco de dados.
 const applyMigrations = async () => {
   // Abrindo o banco de dados SQLite localizado no caminho especificado usando o driver sqlite3.
-  const db = await open({
-    filename: "src/db/database.sqlite",
-    driver: sqlite3.Database,
-  });
+  const db = await initializeDatabase();
 
   // Lista dos arquivos de migração a serem executados.
   // (Este exemplo contém apenas um, mas mais podem ser adicionados.)

@@ -1,116 +1,153 @@
-import { test, expect, beforeEach } from 'vitest'
-import { getAllEventsHandler } from './eventController'
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
-import { Event } from '../models/Event';
+import { test, expect, beforeEach, describe } from "vitest";
+import { getAllEventsHandler, getEventHandler } from "./eventController";
+import { Event } from "../models/Event";
+import initializeDatabase from "../db/dbConfig";
+import { NotFound, BadRequest } from "http-errors";
+import { faker } from "@faker-js/faker";
+
+const makeEvent = async (event: Event) => {
+  const db = await initializeDatabase();
+  const id = event.id ?? faker.number.int();
+
+  // insere o evento
+  await db.run(
+    "INSERT INTO events (id, title, date, time, location, description) VALUES (?, ?, ?, ?, ?, ?)",
+    [id, event.title, event.date, event.time, event.location, event.description]
+  );
+};
 
 beforeEach(async () => {
-   // abrimos a conexão com o banco
-   const dbPromise = open({
-    filename: "src/db/database.sqlite",
-    driver: sqlite3.Database,
-  });
+  // abrimos a conexão com o banco
+  const dbPromise = initializeDatabase();
 
   // aguarda a conexão
   const db = await dbPromise;
 
   // deletar todos os eventos
-  await db.run(
-    "DELETE FROM events"
-  );
-})
+  await db.run("DELETE FROM events");
+});
 
 // a descrição do teste (test) me ajuda a entender sobre o que será testado
 // Estes de soma são exemplos de testes unitários
-test('Testar se soma de 1 com 1 resulta em 2', () => {
+test("Testar se soma de 1 com 1 resulta em 2", () => {
   // o expect serve para comunicar qual deve ser o resultado do teste
-  expect(1 + 1).toEqual(2)
-})
+  expect(1 + 1).toEqual(2);
+});
 
-test('Testar se soma de 2 com 2 resulta em 4', () => {
-  expect(2 + 2).toEqual(4)
-})
+test("Testar se NODE_ENV é igual a test", () => {
+  // a extensão do vscode que instalamos para interagir com o vitest vai atribuir o valor test para nós
+  // process.env.NODE_ENV = "test"
+  expect(process.env.NODE_ENV).toEqual("test");
+});
+
+test("Testar se soma de 2 com 2 resulta em 4", () => {
+  expect(2 + 2).toEqual(4);
+});
 
 // A partir deste ponto vamos fazer testes de integração
-test('Testar se consigo listar um evento no sistema', async () => {
-  // abrimos a conexão com o banco
-  const dbPromise = open({
-    filename: "src/db/database.sqlite",
-    driver: sqlite3.Database,
+describe("Testes para handler de listagem de todos os eventos (getAllEvents)", () => {
+  test("Testar se consigo listar um evento no sistema", async () => {
+    // dados do evento
+    const event: Event = {
+      id: 1,
+      title: "Casamento do meu primo",
+      date: new Date(),
+      description:
+        "Evento de Casamento com amigos, família e muitos convidados",
+      guests: [],
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    // insere o evento
+    makeEvent(event);
+
+    // resgata eventos
+    const allEvents = await getAllEventsHandler();
+
+    // checa se array de eventos tem exatamete um item
+    expect(allEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Casamento do meu primo",
+          time: "Sexta-feira",
+        }),
+      ])
+    );
   });
 
-  // aguarda a conexão
-  const db = await dbPromise;
+  test("Testar se consigo listar múltiplos eventos no sistema", async () => {
+    const event1: Event = {
+      title: "Corrida de kart",
+      date: new Date(),
+      description:
+        "Evento de Casamento com amigos, família e muitos convidados",
+      guests: [],
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
 
-  // dados do evento
-  const event: Event = {
-    id: 1,
-    title: 'Casamento do meu primo',
-    date: new Date(),
-    description: 'Evento de Casamento com amigos, família e muitos convidados',
-    guests: [],
-    location: 'São Paulo',
-    time: 'Sexta-feira',
-  }
+    const event2: Event = {
+      title: "Tosa do meu cachorro",
+      date: new Date(),
+      description:
+        "Evento de Casamento com amigos, família e muitos convidados",
+      guests: [],
+      location: "São Paulo",
+      time: "Quinta-feira",
+    };
 
-  // insere o evento
-  await db.run(
-    "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
-    [event.title, event.date, event.time, event.location, event.description]
-  );
+    // insere os eventos
+    makeEvent(event1);
+    makeEvent(event2);
 
-  // resgata eventos
-  const allEvents = await getAllEventsHandler()
+    const allEvents = await getAllEventsHandler();
 
-  // checa se array de eventos tem exatamete um item
-  expect(allEvents).toHaveLength(1)
-})
+    expect(allEvents).toHaveLength(2);
+    expect(allEvents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Corrida de kart" }),
+        expect.objectContaining({ title: "Tosa do meu cachorro" }),
+      ])
+    );
+  });
+});
 
-test('Testar se consigo listar múltiplos eventos no sistema', async () => {
-  // abrimos a conexão com o banco
-  const dbPromise = open({
-    filename: "src/db/database.sqlite",
-    driver: sqlite3.Database,
+describe("Testes para handler de leitura de um evento (getEvent)", () => {
+  test("Testar se dá erro quando busco por um evento inexistente", async () => {
+    const idInexistente = -1;
+    expect(getEventHandler(idInexistente)).rejects.toBeInstanceOf(NotFound);
   });
 
-  const db = await dbPromise;
-  const event1: Event = {
-    title: 'Corrida de kart',
-    date: new Date(),
-    description: 'Evento de Casamento com amigos, família e muitos convidados',
-    guests: [],
-    location: 'São Paulo',
-    time: 'Sexta-feira',
-  }
+  test("Testar se conseguimos buscar por um evento válido", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
 
-  const event2: Event = {
-    title: 'Tosa do meu cachorro',
-    date: new Date(),
-    description: 'Evento de Casamento com amigos, família e muitos convidados',
-    guests: [],
-    location: 'São Paulo',
-    time: 'Sexta-feira',
-  }
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests: [faker.number.int(), faker.number.int()],
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
 
-  await db.run(
-    "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
-    [event1.title, event1.date, event1.time, event1.location, event1.description]
-  );
+    // aguardamos a criação do evento
+    await makeEvent(eventToCreate);
 
-  await db.run(
-    "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
-    [event2.title, event2.date, event2.time, event2.location, event2.description]
-  );
+    // pegamos o evento criado do banco
+    const event = await getEventHandler(eventToCreate.id as number);
 
-  const allEvents = await getAllEventsHandler()
-
-  expect(allEvents).toHaveLength(2)
-  expect(allEvents).toEqual(
-    expect.arrayContaining(
-      [
-        expect.objectContaining({title: 'Corrida de kart'}),
-        expect.objectContaining({title: 'Tosa do meu cachorro'}),
-      ]
-    )
-  )
-})
+    // checamos se a data criada é maior do que a atual
+    expect(Number(event.date)).greaterThan(Date.now());
+    // checamos se o evento salvo no banco possui as mesmas propriedades
+    expect(event).toEqual(
+      expect.objectContaining({
+        title,
+        description,
+      })
+    );
+  });
+});
