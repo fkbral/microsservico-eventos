@@ -1,9 +1,23 @@
-import { test, expect, beforeEach, describe } from "vitest";
-import { getAllEventsHandler, getEventHandler } from "./eventController";
+import { test, expect, beforeEach, describe, vi } from "vitest";
+import {
+  createEventHandler,
+  getAllEventsHandler,
+  getEventHandler,
+  utils,
+} from "./eventController";
 import { Event } from "../models/Event";
 import initializeDatabase from "../db/dbConfig";
-import { NotFound, BadRequest } from "http-errors";
+import { NotFound } from "http-errors";
 import { faker } from "@faker-js/faker";
+
+vi.mock("axios", () => ({
+  default: {
+    get: async (_url: string) => ({
+      status: 200,
+      data: { id: faker.number.int() },
+    }),
+  },
+}));
 
 const makeEvent = async (event: Event) => {
   const db = await initializeDatabase();
@@ -149,5 +163,57 @@ describe("Testes para handler de leitura de um evento (getEvent)", () => {
         description,
       })
     );
+  });
+});
+
+describe("Testes para handler de criação de um evento (createEvent)", async () => {
+  test("Testar se é possível criar um evento válido (mock do método que busca dados no microsserviço de usuários)", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
+    const guests = [faker.number.int(), faker.number.int()];
+
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests,
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    const spy = vi.spyOn(utils, "getUserFromUserService");
+    spy.mockImplementation(async (guestsDetails: any[], userId: number) => {
+      guestsDetails.push(userId);
+    });
+
+    const event = await createEventHandler(eventToCreate);
+
+    expect(event).toBeTruthy();
+    expect(spy).toHaveBeenCalled();
+
+    spy.mockReset();
+  });
+
+  test("Testar se é possível criar um evento válido (mock do get do axios que busca dados no microsserviço de usuários)", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
+    const guests = [faker.number.int(), faker.number.int()];
+
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests,
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    const event = await createEventHandler(eventToCreate);
+
+    expect(event).toBeTruthy();
   });
 });

@@ -2,9 +2,24 @@ import axios from "axios";
 import { Request, Response } from "express";
 import { Event } from "../models/Event";
 import initializeDatabase from "../db/dbConfig";
-import createError, { NotFound } from "http-errors";
+import createError from "http-errors";
 
 const dbPromise = initializeDatabase();
+
+export const utils = {
+  getUserFromUserService: async (guestsDetails: any[], userId: number) => {
+    const usersServiceURL = process.env.USERS_SERVICE_URL;
+    const handleUsersURL = `${usersServiceURL}/students/studentDetails/${userId}`;
+    try {
+      const userResponse = await axios.get(handleUsersURL);
+      if (userResponse.status === 200) {
+        guestsDetails.push(userResponse.data);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+    }
+  },
+};
 
 // a lógica que é implementada dentro de um controller
 export const getAllEventsHandler = async () => {
@@ -24,6 +39,66 @@ export const getEventHandler = async (id: number) => {
   }
 };
 
+export const createEventHandler = async (event: Event) => {
+  const db = await dbPromise;
+
+  if (
+    !event.title ||
+    !event.date ||
+    !event.time ||
+    !event.location ||
+    !event.description ||
+    !event.guests
+  ) {
+    // Antes era feito levando res em consideração, agora só "jogamos" um erro no handler
+    // return res
+    //   .status(400)
+    //   .send("Propriedades obrigatórias ausentes no corpo da requisição.");
+    throw createError.BadRequest(
+      "Propriedades obrigatórias ausentes no corpo da requisição."
+    );
+  }
+
+  const guestsDetails: any[] = [];
+
+  for (const userId of event.guests) {
+    await utils.getUserFromUserService(guestsDetails, userId);
+  }
+
+  if (guestsDetails.length !== event.guests.length) {
+    throw createError.BadRequest("Convidados fornecidos são inválidos.");
+  }
+
+  try {
+    // Inserir novo evento.
+    const result = await db.run(
+      "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
+      [event.title, event.date, event.time, event.location, event.description]
+    );
+
+    const lastId = result.lastID;
+
+    // Associar convidados ao evento.
+    const insertPromises = event.guests.map((userId) =>
+      db.run("INSERT INTO events_guests (event_id, user_id) VALUES (?, ?)", [
+        lastId,
+        userId,
+      ])
+    );
+    await Promise.all(insertPromises);
+
+    const newEvent = await db.get("SELECT * FROM events WHERE id = ?", [
+      lastId,
+    ]);
+    newEvent.guests = guestsDetails;
+
+    return newEvent;
+  } catch (error) {
+    console.error("Erro ao inserir evento:", error);
+    throw createError.InternalServerError("Erro interno ao criar evento.");
+  }
+};
+
 export const eventController = {
   getAllEvents: async (req: Request, res: Response) => {
     const events = getAllEventsHandler();
@@ -31,69 +106,9 @@ export const eventController = {
   },
 
   createEvent: async (req: Request, res: Response) => {
-    const db = await dbPromise;
-    const event: Event = req.body;
-    const usersServiceURL = process.env.USERS_SERVICE_URL;
-
-    if (
-      !event.title ||
-      !event.date ||
-      !event.time ||
-      !event.location ||
-      !event.description ||
-      !event.guests
-    ) {
-      return res
-        .status(400)
-        .send("Propriedades obrigatórias ausentes no corpo da requisição.");
-    }
-
-    const guestsDetails = [];
-
-    for (const userId of event.guests) {
-      const handleUsersURL = `${usersServiceURL}/students/studentDetails/${userId}`;
-      try {
-        const userResponse = await axios.get(handleUsersURL);
-        if (userResponse.status === 200) {
-          guestsDetails.push(userResponse.data);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
-      }
-    }
-
-    if (guestsDetails.length !== event.guests.length) {
-      return res.status(400).send("Convidados fornecidos são inválidos.");
-    }
-
-    try {
-      // Inserir novo evento.
-      const result = await db.run(
-        "INSERT INTO events (title, date, time, location, description) VALUES (?, ?, ?, ?, ?)",
-        [event.title, event.date, event.time, event.location, event.description]
-      );
-
-      const lastId = result.lastID;
-
-      // Associar convidados ao evento.
-      const insertPromises = event.guests.map((userId) =>
-        db.run("INSERT INTO events_guests (event_id, user_id) VALUES (?, ?)", [
-          lastId,
-          userId,
-        ])
-      );
-      await Promise.all(insertPromises);
-
-      const newEvent = await db.get("SELECT * FROM events WHERE id = ?", [
-        lastId,
-      ]);
-      newEvent.guests = guestsDetails;
-
-      return res.status(201).json(newEvent);
-    } catch (error) {
-      console.error("Erro ao inserir evento:", error);
-      return res.status(500).send("Erro interno ao criar evento.");
-    }
+    const body: Event = req.body;
+    const event = await createEventHandler(body);
+    return res.status(201).send(event);
   },
 
   getGuestsForEvent: async (req: Request, res: Response) => {
