@@ -77,7 +77,7 @@ export const eventController = {
 
       // Associar convidados ao evento.
       const insertPromises = event.guests.map((userId) =>
-        db.run("INSERT INTO event_guests (event_id, user_id) VALUES (?, ?)", [
+        db.run("INSERT INTO events_guests (event_id, user_id) VALUES (?, ?)", [
           lastId,
           userId,
         ])
@@ -105,7 +105,7 @@ export const eventController = {
         `
             SELECT u.id, u.name, u.email ... 
             FROM users u
-            JOIN event_guests eg ON u.id = eg.user_id
+            JOIN events_guests eg ON u.id = eg.user_id
             WHERE eg.event_id = ?
             `,
         [eventId]

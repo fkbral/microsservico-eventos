@@ -60,7 +60,7 @@ describe("Testes para handler de listagem de todos os eventos (getAllEvents)", (
     };
 
     // insere o evento
-    makeEvent(event);
+    await makeEvent(event);
 
     // resgata eventos
     const allEvents = await getAllEventsHandler();
@@ -98,8 +98,8 @@ describe("Testes para handler de listagem de todos os eventos (getAllEvents)", (
     };
 
     // insere os eventos
-    makeEvent(event1);
-    makeEvent(event2);
+    await makeEvent(event1);
+    await makeEvent(event2);
 
     const allEvents = await getAllEventsHandler();
 

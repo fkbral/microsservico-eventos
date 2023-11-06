@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "start": "ts-node-dev --respawn --transpile-only src/app.ts",
     "migrate": "ts-node src/db/applyMigrations.ts",
     "migrate:test": "cross-env NODE_ENV=test ts-node src/db/applyMigrations.ts"
