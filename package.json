@@ -17,13 +17,16 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "http-errors": "^2.0.0",
+    "reflect-metadata": "^0.1.13",
     "sqlite": "^5.0.1",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "tsyringe": "^4.8.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.2.0",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
+    "@vitest/coverage-v8": "^0.34.6",
     "cross-env": "^7.0.3",
     "ts-node-dev": "^2.0.0",
     "vitest": "^0.34.6"

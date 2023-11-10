@@ -1,6 +1,9 @@
+import "reflect-metadata";
+import "../dependency_injection";
 import { test, expect, beforeEach, describe, vi } from "vitest";
 import {
   createEventHandler,
+  createEventHandlerWithInjection,
   getAllEventsHandler,
   getEventHandler,
   utils,
@@ -9,6 +12,7 @@ import { Event } from "../models/Event";
 import initializeDatabase from "../db/dbConfig";
 import { NotFound } from "http-errors";
 import { faker } from "@faker-js/faker";
+import { FakeStudentsAndProfessionalsService } from "../services/FakeStudentsAndProfessionalsService";
 
 vi.mock("axios", () => ({
   default: {
@@ -196,6 +200,30 @@ describe("Testes para handler de criação de um evento (createEvent)", async ()
     spy.mockReset();
   });
 
+  test("Testar se é possível criar um evento válido usando serviço fake", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
+    const guests = [faker.number.int(), faker.number.int()];
+
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests,
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    const event = await createEventHandlerWithInjection(
+      eventToCreate,
+      new FakeStudentsAndProfessionalsService()
+    );
+
+    expect(event).toBeTruthy();
+  });
+
   test("Testar se é possível criar um evento válido (mock do get do axios que busca dados no microsserviço de usuários)", async () => {
     const title = faker.lorem.sentence();
     const description = faker.lorem.paragraph();
@@ -215,5 +243,73 @@ describe("Testes para handler de criação de um evento (createEvent)", async ()
     const event = await createEventHandler(eventToCreate);
 
     expect(event).toBeTruthy();
+  });
+});
+
+type UpdateGuestListHandlerInput = {
+  eventId: string;
+  guestsToAdd: number[];
+  guestsToRemove: number[];
+};
+
+const updateGuestListHandler = async ({
+  eventId,
+  guestsToRemove,
+  guestsToAdd,
+}: UpdateGuestListHandlerInput) => {
+  const dbPromise = initializeDatabase();
+  const db = await dbPromise;
+  const event = await db.get("SELECT * FROM events_guests WHERE event_id = ?", [
+    eventId,
+  ]);
+};
+
+describe("Testes para handler de atualização de convidados de um evento", async () => {
+  test("Testar se é possível adicionar convidados em um evento existente", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
+    const guests = [faker.number.int(), faker.number.int()];
+
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests,
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    const spy = vi.spyOn(utils, "getUserFromUserService");
+    spy.mockImplementation(async (guestsDetails: any[], userId: number) => {
+      guestsDetails.push(userId);
+    });
+
+    const event = await createEventHandler(eventToCreate);
+  });
+
+  test("Testar se é possível remover convidados de um evento existente", async () => {
+    const title = faker.lorem.sentence();
+    const description = faker.lorem.paragraph();
+    const guests = [faker.number.int(), faker.number.int()];
+
+    // evento a ser inserido no banco
+    const eventToCreate: Event = {
+      id: faker.number.int(),
+      title,
+      description,
+      date: faker.date.future(),
+      guests,
+      location: "São Paulo",
+      time: "Sexta-feira",
+    };
+
+    const spy = vi.spyOn(utils, "getUserFromUserService");
+    spy.mockImplementation(async (guestsDetails: any[], userId: number) => {
+      guestsDetails.push(userId);
+    });
+
+    const event = await createEventHandler(eventToCreate);
   });
 });

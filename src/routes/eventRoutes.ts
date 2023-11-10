@@ -1,7 +1,9 @@
 import express from "express";
-import { eventController } from "../controllers/eventController";
+import { EventController } from "../controllers/eventController";
+import { container } from "tsyringe";
 
 const router = express.Router();
+const eventController = container.resolve(EventController);
 
 router.get("/", eventController.getAllEvents);
 router.post("/", eventController.createEvent);

@@ -55,3 +55,17 @@ npm run start
 ## Objetivo do Projeto
 
 O microserviço de eventos foi criado para auxiliar na organização e gestão de eventos de todas as naturezas, seja ele corporativo, social ou educacional. Através deste serviço, os usuários podem criar, editar, deletar e visualizar eventos, garantindo uma gestão eficiente e centralizada.
+
+# Metodologias de teste
+
+## TDD
+### O que é? 
+  - Em inglês seria Test Driven Development, ou desenvolvimento orientado a testes
+### Como? 
+  - Ao precisarmos desenvolver uma funcionalidade nova, iremos primeiro implementá-la direto em nossos testes
+### Por quê?
+  - Teríamos desde o começo testes para nossas funcionalidades, ou seja, não "arriscaremos" desenovolver algo sem testes
+
+## SOLID
+### O que é? 
+  - Conjunto de práticas para produzir um código mais legível/limpo

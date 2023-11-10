@@ -1,4 +1,6 @@
 // Importação dos módulos necessários
+import "reflect-metadata";
+import "./dependency_injection";
 import express from "express"; // Framework web para criar a aplicação
 import dotenv from "dotenv"; // Módulo para carregar variáveis de ambiente
 import cors, { CorsOptions } from "cors"; // Middleware para habilitar CORS
