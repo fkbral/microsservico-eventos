@@ -1,6 +1,10 @@
 import { container } from "tsyringe";
 import { StudentsAndProfessionalsService } from "../services/StudentsAndProfessionalsService";
 import { FakeStudentsAndProfessionalsService } from "../services/FakeStudentsAndProfessionalsService";
+import {
+  EventsRepository,
+  FakeEventsRepository,
+} from "../repositories/EventsRepository";
 
 const environment = process.env.NODE_ENV;
 
@@ -13,4 +17,12 @@ const registerUserService = () => {
   );
 };
 
+const registerEventsRepository = () => {
+  container.registerSingleton(
+    "EventsRepository",
+    environment === "test" ? FakeEventsRepository : EventsRepository
+  );
+};
+
 registerUserService();
+registerEventsRepository();

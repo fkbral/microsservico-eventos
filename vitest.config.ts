@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     coverage: {
       enabled: true,
-      include: ["src/controllers/**"],
+      include: ["src/controllers/**", "src/useCases/**"],
       // opcional
       provider: "v8",
     },

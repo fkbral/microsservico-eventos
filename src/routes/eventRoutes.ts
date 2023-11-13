@@ -4,6 +4,7 @@ import { container } from "tsyringe";
 
 const router = express.Router();
 const eventController = container.resolve(EventController);
+// const eventController = new EventController();
 
 router.get("/", eventController.getAllEvents);
 router.post("/", eventController.createEvent);

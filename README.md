@@ -69,3 +69,14 @@ O microserviço de eventos foi criado para auxiliar na organização e gestão d
 ## SOLID
 ### O que é? 
   - Conjunto de práticas para produzir um código mais legível/limpo
+
+## Injeção de dependências
+1. Instalar alguma biblioteca injetora de dependências (por exemplo, o tsyringe)
+2. Garantir que nossos controllers sejam classes, caso contrário, teremos que convertê-los
+  1. Se estivermos usando tsyringe, temos que adicionar os decorators correspondentes na classes para injetar as dependências corretas
+3. Fazer um arquivo com registro de dependências (por exemplo: src/dependency_injection/index.ts)
+  1. Esse arquivo deve registrar os serviços da nossa aplicação (alguma API externa que não foi desenvolvida na nossa aplicação) e os repositórios p/ interagir com banco de dados
+  2. Se estiver com tsyringe, registro será feito utilizando container.register() ou container.registerSingleton()
+4. No arquivo principal de nossa aplicação, devemos importar o arquivo com o registro da injeção de dependências (por exemplo: src/app.ts)
+  1. Se estiver usando tsyringe, devemos também instalar a biblioteca "reflect-metadata" e importá-la na primeira linha do arquivo principal da aplicação
+5. Ao instanciar nossos controllers e use cases, em vez de usar new, utilizar container.resolve()
