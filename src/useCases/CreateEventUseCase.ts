@@ -1,7 +1,10 @@
 import { inject, injectable } from "tsyringe";
 import { Event } from "../models/Event";
 import createHttpError from "http-errors";
-import { IEventsRepository } from "../repositories/EventsRepository";
+import {
+  EventsRepository,
+  IEventsRepository,
+} from "../repositories/EventsRepository";
 
 @injectable()
 export class CreateEvent {
@@ -37,6 +40,10 @@ export class CreateEvent {
     }
 
     try {
+      // lógica sem injeção de depedências
+      // const eventsRepository = new EventsRepository()
+      // const newEvent = await eventsRepository.createEvent(event);
+
       // Inserir novo evento.
       const newEvent = await this.eventsRepository.createEvent(event);
 

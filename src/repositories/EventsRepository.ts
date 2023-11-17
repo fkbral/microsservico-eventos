@@ -7,20 +7,23 @@ export interface IEventsRepository {
   createEvent: (event: Event) => Promise<Event>;
 }
 
-export class FakeEventsRepository {
+export class FakeEventsRepository implements IEventsRepository {
+  private events: Event[] = [];
   async getEvent() {}
-  async createEvent(event: Event) {
-    return {
+  async createEvent(event: Event): Promise<Event> {
+    const newEvent = {
       ...event,
       id: faker.number.int({ min: 1, max: 2000 }),
       // id: Math.random(),
-    } as Event;
+    };
+    this.events.push(newEvent);
+    return newEvent;
   }
 }
 
-export class EventsRepository {
+export class EventsRepository implements IEventsRepository {
   async getEvent() {}
-  async createEvent(event: Event) {
+  async createEvent(event: Event): Promise<Event> {
     const dbPromise = initializeDatabase();
     const db = await dbPromise;
     await db.run(
